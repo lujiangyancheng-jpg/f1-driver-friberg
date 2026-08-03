@@ -81,6 +81,42 @@ const DRIVERS: Driver[] = [
   { id: "barrichello", name: "Rubens Barrichello", country: "巴西", flag: "🇧🇷", team: "已退役", number: 11, role: "二号车手", titles: 0, wins: 11, podiums: 68, debut: 1993, color: "#e80020" },
 ];
 
+const REGION_BY_COUNTRY: Record<string, string> = {
+  英国: "西欧", 法国: "西欧", 比利时: "西欧", 荷兰: "西欧", 西班牙: "西欧", 摩纳哥: "西欧",
+  德国: "中欧", 意大利: "中欧", 奥地利: "中欧", 瑞士: "中欧",
+  爱沙尼亚: "东欧", 芬兰: "北欧", 丹麦: "北欧", 瑞典: "北欧",
+  加拿大: "北美", 美国: "北美", 墨西哥: "北美",
+  巴西: "南美", 阿根廷: "南美",
+  中国: "东亚", 日本: "东亚", 泰国: "东南亚", 印度: "南亚",
+  澳大利亚: "大洋洲", 新西兰: "大洋洲",
+};
+
+const TRANSFER_HISTORY: Record<string, string> = {
+  russell: "Williams → Mercedes", antonelli: "Mercedes Junior → Mercedes", leclerc: "Sauber → Ferrari", hamilton: "McLaren → Mercedes → Ferrari",
+  norris: "McLaren Junior → McLaren", piastri: "Alpine Academy → McLaren", verstappen: "Toro Rosso → Red Bull Racing", hadjar: "Racing Bulls → Red Bull Racing",
+  lawson: "Racing Bulls → Red Bull Racing → Racing Bulls", lindblad: "Red Bull Junior → Racing Bulls", gasly: "Toro Rosso → Red Bull Racing → AlphaTauri → Alpine", colapinto: "Williams → Alpine",
+  ocon: "Manor → Force India → Renault → Alpine → Haas", bearman: "Ferrari Academy → Ferrari（一站）→ Haas", hulkenberg: "Williams → Force India → Sauber → Renault → Haas → Audi", bortoleto: "Sauber → Audi",
+  sainz: "Toro Rosso → Renault → McLaren → Ferrari → Williams", albon: "Toro Rosso → Red Bull Racing → AlphaTauri → Williams", alonso: "Minardi → Renault → McLaren → Ferrari → Alpine → Aston Martin", stroll: "Williams → Racing Point → Aston Martin",
+  perez: "Sauber → McLaren → Force India → Racing Point → Red Bull Racing → Cadillac", bottas: "Williams → Mercedes → Alfa Romeo → Cadillac",
+  fornaroli: "F2 → McLaren（替补）", oward: "IndyCar → McLaren（替补）", vesti: "F2 → Mercedes（替补）", tsunoda: "AlphaTauri → Racing Bulls → Red Bull Racing → Red Bull Racing（替补）",
+  giovinazzi: "Sauber/Alfa Romeo → Ferrari（替补）", browning: "F2 → Williams（替补）", iwasa: "F2 → Racing Bulls（替补）", crawford: "F2 → Aston Martin（替补）",
+  vandoorne: "McLaren → Mercedes（替补）→ Aston Martin（替补）", doohan: "Alpine（正赛）→ Haas（替补）", hirakawa: "McLaren/Alpine（测试）→ Haas（替补）", aron: "Mercedes Junior → Alpine（替补）",
+  maini: "Alpine Academy → Alpine（替补）", zhou: "Alfa Romeo → Ferrari（替补）→ Cadillac（替补）",
+  vettel: "BMW Sauber → Toro Rosso → Red Bull Racing → Ferrari → Aston Martin", raikkonen: "Sauber → McLaren → Ferrari → Lotus → Ferrari → Sauber",
+  rosberg: "Williams → Mercedes", button: "Williams → BAR/Honda → Brawn → McLaren", ricciardo: "HRT → Toro Rosso → Red Bull Racing → Renault → McLaren → Racing Bulls",
+  massa: "Sauber → Ferrari → Williams", webber: "Minardi → Jaguar → Williams → Red Bull Racing", schumacher: "Jordan → Benetton → Ferrari → Mercedes",
+  senna: "Toleman → Lotus → McLaren → Williams", prost: "McLaren → Renault → Ferrari → McLaren → Williams", stewart: "BRM → Matra/Tyrrell",
+  hakkinen: "Lotus → McLaren", barrichello: "Jordan → Stewart → Ferrari → Honda → Brawn → Williams",
+};
+
+function getRegion(country: string) {
+  return REGION_BY_COUNTRY[country] ?? "其他地区";
+}
+
+function getTransferHistory(driver: Driver) {
+  return TRANSFER_HISTORY[driver.id] ?? driver.team;
+}
+
 const MODES: Array<{ id: Difficulty; label: string; kicker: string; copy: string; tries: number }> = [
   { id: "race", label: "RACE DAY", kicker: "正赛模式", copy: "完整信息面板 · 8 次机会", tries: 8 },
   { id: "qualifying", label: "QUALIFYING", kicker: "排位模式", copy: "更小车手池 · 6 次机会", tries: 6 },
@@ -108,6 +144,7 @@ function formatField(driver: Driver, field: GuessField) {
 
 function getFeedback(guess: Driver, target: Driver, field: GuessField): FeedbackKind {
   if (guess[field] === target[field]) return "correct";
+  if (field === "country" && getRegion(guess.country) === getRegion(target.country)) return "close";
   if (field === "number" || field === "titles" || field === "wins" || field === "podiums" || field === "debut") {
     if (guess[field] == null || target[field] == null) return "wrong";
     const difference = Math.abs(Number(guess[field]) - Number(target[field]));
@@ -121,12 +158,13 @@ function ResultCell({ guess, target, field }: { guess: Driver; target: Driver; f
   const kind = getFeedback(guess, target, field);
   const numeric = ["number", "titles", "wins", "podiums", "debut"].includes(field);
   const value = formatField(guess, field);
+  const hint = kind === "close" && field === "country" ? `同属${getRegion(guess.country)}` : kind === "correct" ? "完全匹配" : kind === "close" ? "接近目标" : "不匹配";
   let arrow = "";
   if (numeric && kind !== "correct" && guess[field] != null && target[field] != null) {
     arrow = Number(guess[field]) < Number(target[field]) ? "↑" : "↓";
   }
   return (
-    <div className={`result-cell result-${kind}`} title={kind === "correct" ? "完全匹配" : kind === "close" ? "接近目标" : "不匹配"}>
+    <div className={`result-cell result-${kind}`} title={hint}>
       <span>{value}</span>
       {arrow ? <b className="direction-arrow">{arrow}</b> : null}
     </div>
@@ -284,19 +322,19 @@ export default function Home() {
                 <button className="submit-key" onClick={() => submitGuess()} disabled={finished || !query.trim()}>↵</button>
               </div>
               {!finished && query ? <div className="suggestions" role="listbox">{suggestions.length ? suggestions.map((driver) => <button key={driver.id} onClick={() => submitGuess(driver)} role="option"><span className="suggestion-flag">{driver.flag}</span><span>{driver.name}</span><small>{formatField(driver, "number")} · {driver.team}</small></button>) : <div className="no-results">没有找到匹配车手</div>}</div> : null}
-              <div className="helper-line"><span className="status-pip" /> 绿色正确 · 黄色接近 · 箭头指示目标数值方向</div>
+              <div className="helper-line"><span className="status-pip" /> 绿色正确 · 黄色同区域或接近 · 箭头指示目标数值方向</div>
               {guesses.length ? <div className="guess-table-wrap"><div className="guess-table-head"><span>你的猜测</span>{FIELD_LABELS.map((label) => <span key={label}>{label}</span>)}</div>{guesses.map((guess, index) => <div className="guess-row" key={`${guess.driver.id}-${index}`}><div className="driver-cell"><span className="driver-dot" style={{ background: guess.driver.color }} /><b>{guess.driver.name}</b><small>{guess.driver.flag} {guess.driver.country}</small></div>{FIELD_KEYS.map((field) => <ResultCell key={field} guess={guess.driver} target={target!} field={field} />)}</div>)}</div> : <div className="empty-grid"><span className="empty-grid-mark">⌁</span><b>GRID IS EMPTY</b><small>你的第一圈还没有开始</small></div>}
             </section>
-            <aside className="race-sidebar"><div className="sidebar-card target-card"><span className="sidebar-kicker">TARGET // CLASSIFIED</span><div className="target-number">?</div><p>这位车手的身份<br />暂时保密</p><div className="target-lines"><span /><span /><span /></div></div><div className="sidebar-card rules-card"><span className="sidebar-kicker">RACE NOTES</span><ul><li>每位车手会显示 8 项数据</li><li>绿色 = 完全匹配</li><li>黄色 = 数值接近</li><li>箭头 = 目标更高或更低</li></ul><button className="small-text-button" onClick={() => setShowRules(true)}>完整规则 ↗</button></div><button className="reveal-button" onClick={() => setRevealed(true)} disabled={finished}>查看答案</button></aside>
+            <aside className="race-sidebar"><div className="sidebar-card target-card"><span className="sidebar-kicker">TARGET // CLASSIFIED</span><div className="target-number">?</div><p>这位车手的身份<br />暂时保密</p><div className="target-lines"><span /><span /><span /></div></div><div className="sidebar-card rules-card"><span className="sidebar-kicker">RACE NOTES</span><ul><li>每位车手会显示 8 项数据</li><li>绿色 = 完全匹配</li><li>黄色 = 同区域或数字接近</li><li>箭头 = 目标数值更高或更低</li></ul><button className="small-text-button" onClick={() => setShowRules(true)}>完整规则 ↗</button></div><button className="reveal-button" onClick={() => setRevealed(true)} disabled={finished}>查看答案</button></aside>
           </div>
-          {finished ? <div className={`finish-banner ${won ? "finish-win" : "finish-loss"}`}><div><span className="finish-kicker">{won ? "CHECKERED FLAG" : "RACE OVER"}</span><b>{won ? "漂亮，这一圈你拿下了。" : `答案是 ${target?.name}`}</b><small>{won ? `用了 ${guesses.length} 次猜测，反应很快。` : "再跑一圈，你会更接近正确答案。"}</small></div><div className="finish-actions"><button className="back-button" onClick={() => setPhase("setup")}>换个模式</button><button className="primary-button" onClick={restartSameMode}><span>再来一局</span><b>↻</b></button></div></div> : null}
+          {finished ? <div className={`finish-banner ${won ? "finish-win" : "finish-loss"}`}><div><span className="finish-kicker">{won ? "CHECKERED FLAG" : "RACE OVER"}</span><b>{won ? "漂亮，这一圈你拿下了。" : `答案是 ${target?.name}`}</b><small>{won ? `用了 ${guesses.length} 次猜测，反应很快。` : "再跑一圈，你会更接近正确答案。"}</small><div className="finish-transfer"><span>CAREER MOVES</span><strong>{target ? getTransferHistory(target) : "—"}</strong></div></div><div className="finish-actions"><button className="back-button" onClick={() => setPhase("setup")}>换个模式</button><button className="primary-button" onClick={restartSameMode}><span>再来一局</span><b>↻</b></button></div></div> : null}
         </main>
       )}
 
       <footer className="footer"><span>F1 DRIVER EDITION / MADE FOR THE GRID</span><span>LOCAL SCORE · NO ACCOUNT REQUIRED</span></footer>
 
-      {showRules ? <div className="modal-backdrop" onClick={() => setShowRules(false)}><div className="modal-card" onClick={(event) => event.stopPropagation()}><button className="modal-close" onClick={() => setShowRules(false)}>×</button><div className="eyebrow"><span className="eyebrow-line" /> HOW TO PLAY</div><h3>像工程师一样读数据</h3><p>输入一位 F1 车手。每次猜测都会揭示与目标车手之间的关系，直到你锁定正确答案。</p><div className="rule-grid"><div><b className="legend green" />绿色</div><span>完全匹配</span><div><b className="legend yellow" />黄色</div><span>数字接近目标</span><div><b className="legend gray" />灰色</div><span>不是同一项</span><div><b className="legend arrow" />↑ ↓</div><span>目标数值更高 / 更低</span></div><button className="primary-button modal-button" onClick={() => setShowRules(false)}><span>知道了</span><b>→</b></button></div></div> : null}
-      {showRoster ? <div className="modal-backdrop" onClick={() => setShowRoster(false)}><div className="modal-card roster-modal" onClick={(event) => event.stopPropagation()}><button className="modal-close" onClick={() => setShowRoster(false)}>×</button><div className="eyebrow"><span className="eyebrow-line" /> DRIVER DATABASE / 2026</div><h3>车手资料库</h3><p className="roster-note">2026 赛季现役车手 + 官方替补 + 退役冠军跨年代题库。车手定位用于游戏反馈，不代表官方等级。</p><div className="roster-list">{DRIVERS.map((driver) => <div className="roster-row" key={driver.id}><span className="driver-dot" style={{ background: driver.color }} /><b>{driver.name}</b><span>{driver.flag} {driver.country}</span><span>{driver.team}</span><span>{driver.role}</span><strong>{formatField(driver, "number")}</strong></div>)}</div></div></div> : null}
+      {showRules ? <div className="modal-backdrop" onClick={() => setShowRules(false)}><div className="modal-card" onClick={(event) => event.stopPropagation()}><button className="modal-close" onClick={() => setShowRules(false)}>×</button><div className="eyebrow"><span className="eyebrow-line" /> HOW TO PLAY</div><h3>像工程师一样读数据</h3><p>输入一位 F1 车手。每次猜测都会揭示与目标车手之间的关系，直到你锁定正确答案。</p><div className="rule-grid"><div><b className="legend green" />绿色</div><span>完全匹配</span><div><b className="legend yellow" />黄色</div><span>同地区或数字接近目标</span><div><b className="legend gray" />灰色</div><span>不是同一项</span><div><b className="legend arrow" />↑ ↓</div><span>目标数值更高 / 更低</span></div><button className="primary-button modal-button" onClick={() => setShowRules(false)}><span>知道了</span><b>→</b></button></div></div> : null}
+      {showRoster ? <div className="modal-backdrop" onClick={() => setShowRoster(false)}><div className="modal-card roster-modal" onClick={(event) => event.stopPropagation()}><button className="modal-close" onClick={() => setShowRoster(false)}>×</button><div className="eyebrow"><span className="eyebrow-line" /> DRIVER DATABASE / 2026</div><h3>车手资料库</h3><p className="roster-note">2026 赛季现役车手 + 官方替补 + 退役冠军跨年代题库。车手定位用于游戏反馈，不代表官方等级。</p><div className="roster-list">{DRIVERS.map((driver) => <div className="roster-row" key={driver.id}><span className="driver-dot" style={{ background: driver.color }} /><b>{driver.name}<small className="roster-transfer">{getTransferHistory(driver)}</small></b><span>{driver.flag} {driver.country}</span><span>{driver.team}</span><span>{driver.role}</span><strong>{formatField(driver, "number")}</strong></div>)}</div></div></div> : null}
     </div>
   );
 }
