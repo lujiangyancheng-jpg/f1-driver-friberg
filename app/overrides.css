@@ -1,0 +1,7 @@
+.guess-table-head, .guess-row { min-width: 1080px !important; grid-template-columns: 1.55fr repeat(8, 1fr) !important; }
+.roster-row { grid-template-columns: 12px 1.35fr .9fr 1.2fr 1fr 45px !important; }
+.roster-row span:nth-child(3), .roster-row span:nth-child(4), .roster-row span:nth-child(5) { color: var(--muted) !important; }
+@media (max-width: 620px) {
+  .roster-row { grid-template-columns: 10px 1fr 48px !important; }
+  .roster-row span:nth-child(3), .roster-row span:nth-child(4), .roster-row span:nth-child(5) { display: none !important; }
+}

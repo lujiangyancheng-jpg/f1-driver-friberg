@@ -1,4 +1,5 @@
 @import "tailwindcss";
+@import "./overrides.css";
 
 :root { --ink: #eaf0ed; --muted: #8d9692; --line: rgba(234, 240, 237, .14); --soft-line: rgba(234, 240, 237, .08); --bg: #101312; --panel: #161b19; --panel-2: #1c2320; --acid: #d6f43b; --red: #ff3d3d; --amber: #e7b655; --green: #b8e36d; }
 * { box-sizing: border-box; }

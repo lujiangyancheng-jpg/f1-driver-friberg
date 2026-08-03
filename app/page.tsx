@@ -9,8 +9,10 @@ type Driver = {
   flag: string;
   team: string;
   number: number;
+  role: "一号车手" | "二号车手" | "替补";
   titles: number;
   wins: number;
+  podiums: number;
   debut: number;
   color: string;
 };
@@ -21,22 +23,47 @@ type FeedbackKind = "correct" | "close" | "wrong";
 
 type Guess = {
   driver: Driver;
-  feedback: Record<keyof Pick<Driver, "number" | "country" | "team" | "titles" | "wins" | "debut">, FeedbackKind>;
+  feedback: Record<keyof Pick<Driver, "team" | "country" | "number" | "role" | "wins" | "titles" | "podiums" | "debut">, FeedbackKind>;
 };
 
 const DRIVERS: Driver[] = [
-  { id: "hamilton", name: "Lewis Hamilton", country: "英国", flag: "🇬🇧", team: "Mercedes-AMG", number: 44, titles: 7, wins: 105, debut: 2007, color: "#00d2be" },
-  { id: "verstappen", name: "Max Verstappen", country: "荷兰", flag: "🇳🇱", team: "Red Bull Racing", number: 1, titles: 4, wins: 63, debut: 2015, color: "#3671c6" },
-  { id: "leclerc", name: "Charles Leclerc", country: "摩纳哥", flag: "🇲🇨", team: "Ferrari", number: 16, titles: 0, wins: 8, debut: 2018, color: "#e80020" },
-  { id: "norris", name: "Lando Norris", country: "英国", flag: "🇬🇧", team: "McLaren", number: 4, titles: 0, wins: 4, debut: 2019, color: "#ff8700" },
-  { id: "alonso", name: "Fernando Alonso", country: "西班牙", flag: "🇪🇸", team: "Aston Martin", number: 14, titles: 2, wins: 32, debut: 2001, color: "#229971" },
-  { id: "piastri", name: "Oscar Piastri", country: "澳大利亚", flag: "🇦🇺", team: "McLaren", number: 81, titles: 0, wins: 2, debut: 2023, color: "#ff8700" },
-  { id: "russell", name: "George Russell", country: "英国", flag: "🇬🇧", team: "Mercedes-AMG", number: 63, titles: 0, wins: 3, debut: 2019, color: "#00d2be" },
-  { id: "sainz", name: "Carlos Sainz", country: "西班牙", flag: "🇪🇸", team: "Williams", number: 55, titles: 0, wins: 4, debut: 2015, color: "#64c4ff" },
-  { id: "vettel", name: "Sebastian Vettel", country: "德国", flag: "🇩🇪", team: "Red Bull Racing", number: 5, titles: 4, wins: 53, debut: 2007, color: "#3671c6" },
-  { id: "raikkonen", name: "Kimi Räikkönen", country: "芬兰", flag: "🇫🇮", team: "Ferrari", number: 7, titles: 1, wins: 21, debut: 2001, color: "#e80020" },
-  { id: "rosberg", name: "Nico Rosberg", country: "德国", flag: "🇩🇪", team: "Mercedes-AMG", number: 6, titles: 1, wins: 23, debut: 2006, color: "#00d2be" },
-  { id: "perez", name: "Sergio Pérez", country: "墨西哥", flag: "🇲🇽", team: "Red Bull Racing", number: 11, titles: 0, wins: 6, debut: 2011, color: "#3671c6" },
+  // 现役：2026 赛季官方车手名单；“一号/二号”是题库定位，方便形成猜测维度，不代表官方等级。
+  { id: "russell", name: "George Russell", country: "英国", flag: "🇬🇧", team: "Mercedes", number: 63, role: "一号车手", titles: 0, wins: 7, podiums: 29, debut: 2019, color: "#00d2be" },
+  { id: "antonelli", name: "Kimi Antonelli", country: "意大利", flag: "🇮🇹", team: "Mercedes", number: 12, role: "二号车手", titles: 0, wins: 6, podiums: 12, debut: 2025, color: "#00d2be" },
+  { id: "leclerc", name: "Charles Leclerc", country: "摩纳哥", flag: "🇲🇨", team: "Ferrari", number: 16, role: "一号车手", titles: 0, wins: 8, podiums: 49, debut: 2018, color: "#e80020" },
+  { id: "hamilton", name: "Lewis Hamilton", country: "英国", flag: "🇬🇧", team: "Ferrari", number: 44, role: "二号车手", titles: 7, wins: 105, podiums: 202, debut: 2007, color: "#e80020" },
+  { id: "norris", name: "Lando Norris", country: "英国", flag: "🇬🇧", team: "McLaren", number: 1, role: "一号车手", titles: 1, wins: 12, podiums: 47, debut: 2019, color: "#ff8700" },
+  { id: "piastri", name: "Oscar Piastri", country: "澳大利亚", flag: "🇦🇺", team: "McLaren", number: 81, role: "二号车手", titles: 0, wins: 9, podiums: 25, debut: 2023, color: "#ff8700" },
+  { id: "verstappen", name: "Max Verstappen", country: "荷兰", flag: "🇳🇱", team: "Red Bull Racing", number: 3, role: "一号车手", titles: 4, wins: 71, podiums: 127, debut: 2015, color: "#3671c6" },
+  { id: "hadjar", name: "Isack Hadjar", country: "法国", flag: "🇫🇷", team: "Red Bull Racing", number: 6, role: "二号车手", titles: 0, wins: 0, podiums: 2, debut: 2025, color: "#3671c6" },
+  { id: "lawson", name: "Liam Lawson", country: "新西兰", flag: "🇳🇿", team: "Racing Bulls", number: 30, role: "一号车手", titles: 0, wins: 0, podiums: 0, debut: 2023, color: "#6692ff" },
+  { id: "lindblad", name: "Arvid Lindblad", country: "瑞典", flag: "🇸🇪", team: "Racing Bulls", number: 41, role: "二号车手", titles: 0, wins: 0, podiums: 0, debut: 2026, color: "#6692ff" },
+  { id: "gasly", name: "Pierre Gasly", country: "法国", flag: "🇫🇷", team: "Alpine", number: 10, role: "一号车手", titles: 0, wins: 1, podiums: 4, debut: 2017, color: "#ff87bc" },
+  { id: "colapinto", name: "Franco Colapinto", country: "阿根廷", flag: "🇦🇷", team: "Alpine", number: 43, role: "二号车手", titles: 0, wins: 0, podiums: 0, debut: 2024, color: "#ff87bc" },
+  { id: "ocon", name: "Esteban Ocon", country: "法国", flag: "🇫🇷", team: "Haas", number: 31, role: "一号车手", titles: 0, wins: 1, podiums: 4, debut: 2016, color: "#b6babd" },
+  { id: "bearman", name: "Oliver Bearman", country: "英国", flag: "🇬🇧", team: "Haas", number: 87, role: "二号车手", titles: 0, wins: 0, podiums: 1, debut: 2024, color: "#b6babd" },
+  { id: "hulkenberg", name: "Nico Hulkenberg", country: "德国", flag: "🇩🇪", team: "Audi", number: 27, role: "一号车手", titles: 0, wins: 0, podiums: 1, debut: 2010, color: "#d0d0d0" },
+  { id: "bortoleto", name: "Gabriel Bortoleto", country: "巴西", flag: "🇧🇷", team: "Audi", number: 5, role: "二号车手", titles: 0, wins: 0, podiums: 0, debut: 2025, color: "#d0d0d0" },
+  { id: "sainz", name: "Carlos Sainz", country: "西班牙", flag: "🇪🇸", team: "Williams", number: 55, role: "一号车手", titles: 0, wins: 4, podiums: 29, debut: 2015, color: "#64c4ff" },
+  { id: "albon", name: "Alexander Albon", country: "泰国", flag: "🇹🇭", team: "Williams", number: 23, role: "二号车手", titles: 0, wins: 0, podiums: 2, debut: 2019, color: "#64c4ff" },
+  { id: "alonso", name: "Fernando Alonso", country: "西班牙", flag: "🇪🇸", team: "Aston Martin", number: 14, role: "一号车手", titles: 2, wins: 32, podiums: 106, debut: 2001, color: "#229971" },
+  { id: "stroll", name: "Lance Stroll", country: "加拿大", flag: "🇨🇦", team: "Aston Martin", number: 18, role: "二号车手", titles: 0, wins: 0, podiums: 3, debut: 2017, color: "#229971" },
+  { id: "perez", name: "Sergio Pérez", country: "墨西哥", flag: "🇲🇽", team: "Cadillac", number: 11, role: "一号车手", titles: 0, wins: 6, podiums: 39, debut: 2011, color: "#9b9b9b" },
+  { id: "bottas", name: "Valtteri Bottas", country: "芬兰", flag: "🇫🇮", team: "Cadillac", number: 77, role: "二号车手", titles: 0, wins: 10, podiums: 67, debut: 2013, color: "#9b9b9b" },
+  // 退役：补入跨年代冠军与高知名度车手，车队字段统一显示为“已退役”。
+  { id: "vettel", name: "Sebastian Vettel", country: "德国", flag: "🇩🇪", team: "已退役", number: 5, role: "一号车手", titles: 4, wins: 53, podiums: 122, debut: 2007, color: "#3671c6" },
+  { id: "raikkonen", name: "Kimi Räikkönen", country: "芬兰", flag: "🇫🇮", team: "已退役", number: 7, role: "一号车手", titles: 1, wins: 21, podiums: 103, debut: 2001, color: "#e80020" },
+  { id: "rosberg", name: "Nico Rosberg", country: "德国", flag: "🇩🇪", team: "已退役", number: 6, role: "一号车手", titles: 1, wins: 23, podiums: 57, debut: 2006, color: "#00d2be" },
+  { id: "button", name: "Jenson Button", country: "英国", flag: "🇬🇧", team: "已退役", number: 22, role: "一号车手", titles: 1, wins: 15, podiums: 50, debut: 2000, color: "#ff8700" },
+  { id: "ricciardo", name: "Daniel Ricciardo", country: "澳大利亚", flag: "🇦🇺", team: "已退役", number: 3, role: "一号车手", titles: 0, wins: 8, podiums: 32, debut: 2011, color: "#ff8700" },
+  { id: "massa", name: "Felipe Massa", country: "巴西", flag: "🇧🇷", team: "已退役", number: 19, role: "二号车手", titles: 0, wins: 11, podiums: 41, debut: 2002, color: "#e80020" },
+  { id: "webber", name: "Mark Webber", country: "澳大利亚", flag: "🇦🇺", team: "已退役", number: 6, role: "二号车手", titles: 0, wins: 9, podiums: 42, debut: 2002, color: "#3671c6" },
+  { id: "schumacher", name: "Michael Schumacher", country: "德国", flag: "🇩🇪", team: "已退役", number: 1, role: "一号车手", titles: 7, wins: 91, podiums: 155, debut: 1991, color: "#e80020" },
+  { id: "senna", name: "Ayrton Senna", country: "巴西", flag: "🇧🇷", team: "已退役", number: 12, role: "一号车手", titles: 3, wins: 41, podiums: 80, debut: 1984, color: "#e5c11a" },
+  { id: "prost", name: "Alain Prost", country: "法国", flag: "🇫🇷", team: "已退役", number: 2, role: "一号车手", titles: 4, wins: 51, podiums: 106, debut: 1980, color: "#e5c11a" },
+  { id: "stewart", name: "Jackie Stewart", country: "英国", flag: "🇬🇧", team: "已退役", number: 6, role: "一号车手", titles: 3, wins: 27, podiums: 43, debut: 1965, color: "#e5c11a" },
+  { id: "hakkinen", name: "Mika Häkkinen", country: "芬兰", flag: "🇫🇮", team: "已退役", number: 8, role: "一号车手", titles: 2, wins: 20, podiums: 51, debut: 1991, color: "#ff8700" },
+  { id: "barrichello", name: "Rubens Barrichello", country: "巴西", flag: "🇧🇷", team: "已退役", number: 11, role: "二号车手", titles: 0, wins: 11, podiums: 68, debut: 1993, color: "#e80020" },
 ];
 
 const MODES: Array<{ id: Difficulty; label: string; kicker: string; copy: string; tries: number }> = [
@@ -45,8 +72,8 @@ const MODES: Array<{ id: Difficulty; label: string; kicker: string; copy: string
   { id: "rookie", label: "ROOKIE", kicker: "新手模式", copy: "提示更多 · 10 次机会", tries: 10 },
 ];
 
-const FIELD_LABELS = ["车号", "国籍", "车队", "冠军", "胜场", "首秀"] as const;
-const FIELD_KEYS = ["number", "country", "team", "titles", "wins", "debut"] as const;
+const FIELD_LABELS = ["车队/退役", "国家", "车号", "定位", "分站冠军", "年度冠军", "领奖台", "首秀"] as const;
+const FIELD_KEYS = ["team", "country", "number", "role", "wins", "titles", "podiums", "debut"] as const;
 type GuessField = (typeof FIELD_KEYS)[number];
 
 function normalize(value: string) {
@@ -54,18 +81,21 @@ function normalize(value: string) {
 }
 
 function formatField(driver: Driver, field: GuessField) {
+  if (field === "team") return driver.team;
+  if (field === "role") return driver.role;
   if (field === "number") return `#${driver.number}`;
   if (field === "titles") return `${driver.titles}`;
   if (field === "wins") return `${driver.wins}`;
+  if (field === "podiums") return `${driver.podiums}`;
   if (field === "debut") return `${driver.debut}`;
-  return field === "country" ? `${driver.flag} ${driver.country}` : driver.team;
+  return `${driver.flag} ${driver.country}`;
 }
 
 function getFeedback(guess: Driver, target: Driver, field: GuessField): FeedbackKind {
   if (guess[field] === target[field]) return "correct";
-  if (field === "number" || field === "titles" || field === "wins" || field === "debut") {
+  if (field === "number" || field === "titles" || field === "wins" || field === "podiums" || field === "debut") {
     const difference = Math.abs(Number(guess[field]) - Number(target[field]));
-    const threshold = field === "wins" ? 12 : field === "debut" ? 4 : field === "number" ? 10 : 1;
+    const threshold = field === "podiums" ? 18 : field === "wins" ? 12 : field === "debut" ? 4 : field === "number" ? 10 : 1;
     if (difference <= threshold) return "close";
   }
   return "wrong";
@@ -73,7 +103,7 @@ function getFeedback(guess: Driver, target: Driver, field: GuessField): Feedback
 
 function ResultCell({ guess, target, field }: { guess: Driver; target: Driver; field: GuessField }) {
   const kind = getFeedback(guess, target, field);
-  const numeric = ["number", "titles", "wins", "debut"].includes(field);
+  const numeric = ["number", "titles", "wins", "podiums", "debut"].includes(field);
   const value = formatField(guess, field);
   let arrow = "";
   if (numeric && kind !== "correct") {
@@ -111,7 +141,7 @@ export default function Home() {
   const suggestions = useMemo(() => {
     const value = normalize(query);
     if (!value) return DRIVERS.slice(0, 6);
-    return DRIVERS.filter((driver) => normalize(`${driver.name}${driver.country}${driver.team}${driver.number}`).includes(value)).slice(0, 6);
+    return DRIVERS.filter((driver) => normalize(`${driver.name}${driver.country}${driver.team}${driver.role}${driver.number}`).includes(value)).slice(0, 6);
   }, [query]);
   const finished = Boolean(target && (guesses.some((guess) => guess.driver.id === target.id) || guesses.length >= mode.tries || revealed));
   const won = Boolean(target && guesses.some((guess) => guess.driver.id === target.id));
@@ -207,7 +237,7 @@ export default function Home() {
                 <span className="feature-index">01</span><span><b>每日车手</b><small>每天一位隐藏车手，挑战你的记忆</small></span><i>↗</i>
               </button>
               <button className="feature-card" onClick={() => setShowRoster(true)}>
-                <span className="feature-index">02</span><span><b>车手资料库</b><small>查看本版本收录的车手档案</small></span><i>↗</i>
+                <span className="feature-index">02</span><span><b>车手资料库</b><small>现役 2026 + 退役冠军跨年代收录</small></span><i>↗</i>
               </button>
               <div className="feature-note"><span className="checkmark">✓</span><span><b>绿色 = 完全匹配</b><small>黄色接近 · 箭头指向目标数值</small></span></div>
             </div>
@@ -234,14 +264,14 @@ export default function Home() {
               <div className="input-label"><span>ENTER DRIVER</span><small>输入昵称、国家或车号</small></div>
               <div className={`guess-input-wrap ${finished ? "disabled" : ""}`}>
                 <span className="search-icon">⌕</span>
-                <input value={query} disabled={finished} onChange={(event) => setQuery(event.target.value)} onKeyDown={(event) => { if (event.key === "Enter") submitGuess(); }} placeholder="例如：Lewis / 44 / 英国" aria-label="输入车手昵称" />
+                <input value={query} disabled={finished} onChange={(event) => setQuery(event.target.value)} onKeyDown={(event) => { if (event.key === "Enter") submitGuess(); }} placeholder="例如：Lewis / 44 / 英国 / 已退役" aria-label="输入车手昵称" />
                 <button className="submit-key" onClick={() => submitGuess()} disabled={finished || !query.trim()}>↵</button>
               </div>
               {!finished && query ? <div className="suggestions" role="listbox">{suggestions.length ? suggestions.map((driver) => <button key={driver.id} onClick={() => submitGuess(driver)} role="option"><span className="suggestion-flag">{driver.flag}</span><span>{driver.name}</span><small>#{driver.number} · {driver.team}</small></button>) : <div className="no-results">没有找到匹配车手</div>}</div> : null}
               <div className="helper-line"><span className="status-pip" /> 绿色正确 · 黄色接近 · 箭头指示目标数值方向</div>
               {guesses.length ? <div className="guess-table-wrap"><div className="guess-table-head"><span>你的猜测</span>{FIELD_LABELS.map((label) => <span key={label}>{label}</span>)}</div>{guesses.map((guess, index) => <div className="guess-row" key={`${guess.driver.id}-${index}`}><div className="driver-cell"><span className="driver-dot" style={{ background: guess.driver.color }} /><b>{guess.driver.name}</b><small>{guess.driver.flag} {guess.driver.country}</small></div>{FIELD_KEYS.map((field) => <ResultCell key={field} guess={guess.driver} target={target!} field={field} />)}</div>)}</div> : <div className="empty-grid"><span className="empty-grid-mark">⌁</span><b>GRID IS EMPTY</b><small>你的第一圈还没有开始</small></div>}
             </section>
-            <aside className="race-sidebar"><div className="sidebar-card target-card"><span className="sidebar-kicker">TARGET // CLASSIFIED</span><div className="target-number">?</div><p>这位车手的身份<br />暂时保密</p><div className="target-lines"><span /><span /><span /></div></div><div className="sidebar-card rules-card"><span className="sidebar-kicker">RACE NOTES</span><ul><li>每位车手会显示 6 项数据</li><li>绿色 = 完全匹配</li><li>黄色 = 数值接近</li><li>箭头 = 目标更高或更低</li></ul><button className="small-text-button" onClick={() => setShowRules(true)}>完整规则 ↗</button></div><button className="reveal-button" onClick={() => setRevealed(true)} disabled={finished}>查看答案</button></aside>
+            <aside className="race-sidebar"><div className="sidebar-card target-card"><span className="sidebar-kicker">TARGET // CLASSIFIED</span><div className="target-number">?</div><p>这位车手的身份<br />暂时保密</p><div className="target-lines"><span /><span /><span /></div></div><div className="sidebar-card rules-card"><span className="sidebar-kicker">RACE NOTES</span><ul><li>每位车手会显示 8 项数据</li><li>绿色 = 完全匹配</li><li>黄色 = 数值接近</li><li>箭头 = 目标更高或更低</li></ul><button className="small-text-button" onClick={() => setShowRules(true)}>完整规则 ↗</button></div><button className="reveal-button" onClick={() => setRevealed(true)} disabled={finished}>查看答案</button></aside>
           </div>
           {finished ? <div className={`finish-banner ${won ? "finish-win" : "finish-loss"}`}><div><span className="finish-kicker">{won ? "CHECKERED FLAG" : "RACE OVER"}</span><b>{won ? "漂亮，这一圈你拿下了。" : `答案是 ${target?.name}`}</b><small>{won ? `用了 ${guesses.length} 次猜测，反应很快。` : "再跑一圈，你会更接近正确答案。"}</small></div><div className="finish-actions"><button className="back-button" onClick={() => setPhase("setup")}>换个模式</button><button className="primary-button" onClick={restartSameMode}><span>再来一局</span><b>↻</b></button></div></div> : null}
         </main>
@@ -250,7 +280,7 @@ export default function Home() {
       <footer className="footer"><span>F1 DRIVER EDITION / MADE FOR THE GRID</span><span>LOCAL SCORE · NO ACCOUNT REQUIRED</span></footer>
 
       {showRules ? <div className="modal-backdrop" onClick={() => setShowRules(false)}><div className="modal-card" onClick={(event) => event.stopPropagation()}><button className="modal-close" onClick={() => setShowRules(false)}>×</button><div className="eyebrow"><span className="eyebrow-line" /> HOW TO PLAY</div><h3>像工程师一样读数据</h3><p>输入一位 F1 车手。每次猜测都会揭示与目标车手之间的关系，直到你锁定正确答案。</p><div className="rule-grid"><div><b className="legend green" />绿色</div><span>完全匹配</span><div><b className="legend yellow" />黄色</div><span>数字接近目标</span><div><b className="legend gray" />灰色</div><span>不是同一项</span><div><b className="legend arrow" />↑ ↓</div><span>目标数值更高 / 更低</span></div><button className="primary-button modal-button" onClick={() => setShowRules(false)}><span>知道了</span><b>→</b></button></div></div> : null}
-      {showRoster ? <div className="modal-backdrop" onClick={() => setShowRoster(false)}><div className="modal-card roster-modal" onClick={(event) => event.stopPropagation()}><button className="modal-close" onClick={() => setShowRoster(false)}>×</button><div className="eyebrow"><span className="eyebrow-line" /> DRIVER DATABASE</div><h3>车手资料库</h3><p className="roster-note">本版本内置示例题库，可继续扩展更多年代与车手。</p><div className="roster-list">{DRIVERS.map((driver) => <div className="roster-row" key={driver.id}><span className="driver-dot" style={{ background: driver.color }} /><b>{driver.name}</b><span>{driver.flag} {driver.country}</span><span>{driver.team}</span><strong>#{driver.number}</strong></div>)}</div></div></div> : null}
+      {showRoster ? <div className="modal-backdrop" onClick={() => setShowRoster(false)}><div className="modal-card roster-modal" onClick={(event) => event.stopPropagation()}><button className="modal-close" onClick={() => setShowRoster(false)}>×</button><div className="eyebrow"><span className="eyebrow-line" /> DRIVER DATABASE / 2026</div><h3>车手资料库</h3><p className="roster-note">2026 赛季现役车手 + 退役冠军跨年代题库。车手定位用于游戏反馈，不代表官方等级。</p><div className="roster-list">{DRIVERS.map((driver) => <div className="roster-row" key={driver.id}><span className="driver-dot" style={{ background: driver.color }} /><b>{driver.name}</b><span>{driver.flag} {driver.country}</span><span>{driver.team}</span><span>{driver.role}</span><strong>#{driver.number}</strong></div>)}</div></div></div> : null}
     </div>
   );
 }
