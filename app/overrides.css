@@ -7,6 +7,19 @@
 .finish-transfer span, .finish-transfer strong { display: block; }
 .finish-transfer span { color: var(--acid); font-size: 8px; letter-spacing: .16em; }
 .finish-transfer strong { color: #aeb9b1; font-size: 10px; font-weight: 400; margin-top: 5px; }
+.reveal-row .driver-cell { animation: driverPulse .52s ease both; }
+.reveal-cell { transform-origin: center; backface-visibility: hidden; animation: cellFlip .58s cubic-bezier(.2,.75,.25,1) both; }
+.guess-toast { position: fixed; z-index: 15; top: 108px; left: 50%; display: flex; align-items: center; gap: 12px; min-width: 190px; padding: 12px 20px 12px 12px; border: 1px solid rgba(214,244,59,.28); background: rgba(25,34,28,.96); box-shadow: 0 15px 45px rgba(0,0,0,.36), 0 0 24px rgba(214,244,59,.08); transform: translateX(-50%); animation: toastIn .72s cubic-bezier(.2,.9,.25,1) both; pointer-events: none; }
+.guess-toast-win { border-color: rgba(214,244,59,.8); background: linear-gradient(120deg, rgba(44,60,29,.98), rgba(25,34,28,.98)); }
+.toast-badge { width: 28px; height: 28px; display: grid; place-items: center; background: var(--acid); color: var(--bg); font-size: 18px; font-weight: 900; }
+.guess-toast small, .guess-toast b { display: block; }.guess-toast small { color: var(--acid); font-size: 8px; letter-spacing: .16em; }.guess-toast b { margin-top: 3px; font-size: 15px; letter-spacing: .04em; }
+.toast-spark { position: absolute; width: 5px; height: 5px; background: var(--acid); animation: sparkFly .72s ease both; }.spark-one { left: -9px; top: 12px; }.spark-two { right: -10px; top: 8px; animation-delay: .1s; background: var(--red); }.spark-three { right: 12px; bottom: -9px; animation-delay: .18s; background: var(--amber); }
+@keyframes cellFlip { 0% { opacity: 0; transform: rotateX(88deg) scale(.94); } 55% { opacity: 1; transform: rotateX(-8deg) scale(1.02); } 100% { opacity: 1; transform: rotateX(0) scale(1); } }
+@keyframes driverPulse { 0% { opacity: .35; transform: translateX(-8px); } 100% { opacity: 1; transform: translateX(0); } }
+@keyframes toastIn { 0% { opacity: 0; transform: translate(-50%, -20px) scale(.86); } 45% { opacity: 1; transform: translate(-50%, 4px) scale(1.04); } 100% { opacity: 1; transform: translate(-50%, 0) scale(1); } }
+@keyframes sparkFly { 0% { opacity: 0; transform: translate(0, 0) scale(.5); } 45% { opacity: 1; } 100% { opacity: 0; transform: translate(var(--spark-x, 12px), var(--spark-y, -18px)) scale(1); } }
+.spark-one { --spark-x: -14px; --spark-y: -20px; }.spark-two { --spark-x: 16px; --spark-y: -16px; }.spark-three { --spark-x: 10px; --spark-y: 16px; }
+@media (prefers-reduced-motion: reduce) { .reveal-cell, .reveal-row .driver-cell, .guess-toast, .toast-spark { animation: none !important; } }
 @media (max-width: 620px) {
   .roster-row { grid-template-columns: 10px 1fr 48px !important; }
   .roster-row span:nth-child(3), .roster-row span:nth-child(4), .roster-row span:nth-child(5) { display: none !important; }

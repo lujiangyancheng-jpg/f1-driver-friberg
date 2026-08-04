@@ -154,7 +154,7 @@ function getFeedback(guess: Driver, target: Driver, field: GuessField): Feedback
   return "wrong";
 }
 
-function ResultCell({ guess, target, field }: { guess: Driver; target: Driver; field: GuessField }) {
+function ResultCell({ guess, target, field, animate = false, cellIndex = 0 }: { guess: Driver; target: Driver; field: GuessField; animate?: boolean; cellIndex?: number }) {
   const kind = getFeedback(guess, target, field);
   const numeric = ["number", "titles", "wins", "podiums", "debut"].includes(field);
   const value = formatField(guess, field);
@@ -164,7 +164,7 @@ function ResultCell({ guess, target, field }: { guess: Driver; target: Driver; f
     arrow = Number(guess[field]) < Number(target[field]) ? "↑" : "↓";
   }
   return (
-    <div className={`result-cell result-${kind}`} title={hint}>
+    <div className={`result-cell result-${kind}${animate ? " reveal-cell" : ""}`} style={animate ? { animationDelay: `${cellIndex * 95}ms` } : undefined} title={hint}>
       <span>{value}</span>
       {arrow ? <b className="direction-arrow">{arrow}</b> : null}
     </div>
@@ -180,6 +180,7 @@ export default function Home() {
   const [showRules, setShowRules] = useState(false);
   const [showRoster, setShowRoster] = useState(false);
   const [revealed, setRevealed] = useState(false);
+  const [animatingGuess, setAnimatingGuess] = useState<string | null>(null);
   const [stats, setStats] = useState({ played: 0, wins: 0, streak: 0, best: 0 });
 
   useEffect(() => {
@@ -199,6 +200,7 @@ export default function Home() {
   }, [query]);
   const finished = Boolean(target && (guesses.some((guess) => guess.driver.id === target.id) || guesses.length >= mode.tries || revealed));
   const won = Boolean(target && guesses.some((guess) => guess.driver.id === target.id));
+  const showFinish = finished && !animatingGuess;
 
   function startGame() {
     const pool = difficulty === "qualifying" ? DRIVERS.filter((driver) => driver.titles > 0 || driver.wins > 20) : difficulty === "rookie" ? DRIVERS : DRIVERS;
@@ -206,6 +208,7 @@ export default function Home() {
     setGuesses([]);
     setQuery("");
     setRevealed(false);
+    setAnimatingGuess(null);
     setPhase("game");
   }
 
@@ -215,14 +218,18 @@ export default function Home() {
     setGuesses([]);
     setQuery("");
     setRevealed(false);
+    setAnimatingGuess(null);
   }
 
   function submitGuess(driver = suggestions[0]) {
-    if (!target || finished || !driver || guesses.some((guess) => guess.driver.id === driver.id)) return;
+    if (!target || finished || animatingGuess || !driver || guesses.some((guess) => guess.driver.id === driver.id)) return;
     const feedback = FIELD_KEYS.reduce((result, field) => ({ ...result, [field]: getFeedback(driver, target, field) }), {} as Guess["feedback"]);
     const next = [...guesses, { driver, feedback }];
     setGuesses(next);
     setQuery("");
+    const animationKey = `${driver.id}-${next.length}`;
+    setAnimatingGuess(animationKey);
+    window.setTimeout(() => setAnimatingGuess((current) => current === animationKey ? null : current), 1250);
     const isComplete = driver.id === target.id || next.length >= mode.tries;
     if (isComplete) {
       const wonRound = driver.id === target.id;
@@ -318,16 +325,17 @@ export default function Home() {
               <div className="input-label"><span>ENTER DRIVER</span><small>输入昵称、国家或车号</small></div>
               <div className={`guess-input-wrap ${finished ? "disabled" : ""}`}>
                 <span className="search-icon">⌕</span>
-                <input value={query} disabled={finished} onChange={(event) => setQuery(event.target.value)} onKeyDown={(event) => { if (event.key === "Enter") submitGuess(); }} placeholder="例如：Lewis / 44 / 英国 / 已退役" aria-label="输入车手昵称" />
-                <button className="submit-key" onClick={() => submitGuess()} disabled={finished || !query.trim()}>↵</button>
+                <input value={query} disabled={finished || Boolean(animatingGuess)} onChange={(event) => setQuery(event.target.value)} onKeyDown={(event) => { if (event.key === "Enter") submitGuess(); }} placeholder="例如：Lewis / 44 / 英国 / 已退役" aria-label="输入车手昵称" />
+                <button className="submit-key" onClick={() => submitGuess()} disabled={finished || Boolean(animatingGuess) || !query.trim()}>↵</button>
               </div>
               {!finished && query ? <div className="suggestions" role="listbox">{suggestions.length ? suggestions.map((driver) => <button key={driver.id} onClick={() => submitGuess(driver)} role="option"><span className="suggestion-flag">{driver.flag}</span><span>{driver.name}</span><small>{formatField(driver, "number")} · {driver.team}</small></button>) : <div className="no-results">没有找到匹配车手</div>}</div> : null}
               <div className="helper-line"><span className="status-pip" /> 绿色正确 · 黄色同区域或接近 · 箭头指示目标数值方向</div>
-              {guesses.length ? <div className="guess-table-wrap"><div className="guess-table-head"><span>你的猜测</span>{FIELD_LABELS.map((label) => <span key={label}>{label}</span>)}</div>{guesses.map((guess, index) => <div className="guess-row" key={`${guess.driver.id}-${index}`}><div className="driver-cell"><span className="driver-dot" style={{ background: guess.driver.color }} /><b>{guess.driver.name}</b><small>{guess.driver.flag} {guess.driver.country}</small></div>{FIELD_KEYS.map((field) => <ResultCell key={field} guess={guess.driver} target={target!} field={field} />)}</div>)}</div> : <div className="empty-grid"><span className="empty-grid-mark">⌁</span><b>GRID IS EMPTY</b><small>你的第一圈还没有开始</small></div>}
+              {guesses.length ? <div className="guess-table-wrap"><div className="guess-table-head"><span>你的猜测</span>{FIELD_LABELS.map((label) => <span key={label}>{label}</span>)}</div>{guesses.map((guess, index) => <div className={`guess-row ${animatingGuess === `${guess.driver.id}-${index + 1}` ? "reveal-row" : ""}`} key={`${guess.driver.id}-${index}`}><div className="driver-cell"><span className="driver-dot" style={{ background: guess.driver.color }} /><b>{guess.driver.name}</b><small>{guess.driver.flag} {guess.driver.country}</small></div>{FIELD_KEYS.map((field, fieldIndex) => <ResultCell key={field} guess={guess.driver} target={target!} field={field} animate={animatingGuess === `${guess.driver.id}-${index + 1}`} cellIndex={fieldIndex} />)}</div>)}</div> : <div className="empty-grid"><span className="empty-grid-mark">⌁</span><b>GRID IS EMPTY</b><small>你的第一圈还没有开始</small></div>}
             </section>
             <aside className="race-sidebar"><div className="sidebar-card target-card"><span className="sidebar-kicker">TARGET // CLASSIFIED</span><div className="target-number">?</div><p>这位车手的身份<br />暂时保密</p><div className="target-lines"><span /><span /><span /></div></div><div className="sidebar-card rules-card"><span className="sidebar-kicker">RACE NOTES</span><ul><li>每位车手会显示 8 项数据</li><li>绿色 = 完全匹配</li><li>黄色 = 同区域或数字接近</li><li>箭头 = 目标数值更高或更低</li></ul><button className="small-text-button" onClick={() => setShowRules(true)}>完整规则 ↗</button></div><button className="reveal-button" onClick={() => setRevealed(true)} disabled={finished}>查看答案</button></aside>
           </div>
-          {finished ? <div className={`finish-banner ${won ? "finish-win" : "finish-loss"}`}><div><span className="finish-kicker">{won ? "CHECKERED FLAG" : "RACE OVER"}</span><b>{won ? "漂亮，这一圈你拿下了。" : `答案是 ${target?.name}`}</b><small>{won ? `用了 ${guesses.length} 次猜测，反应很快。` : "再跑一圈，你会更接近正确答案。"}</small><div className="finish-transfer"><span>CAREER MOVES</span><strong>{target ? getTransferHistory(target) : "—"}</strong></div></div><div className="finish-actions"><button className="back-button" onClick={() => setPhase("setup")}>换个模式</button><button className="primary-button" onClick={restartSameMode}><span>再来一局</span><b>↻</b></button></div></div> : null}
+          {animatingGuess ? <div className={`guess-toast ${won ? "guess-toast-win" : ""}`} role="status" aria-live="polite"><span className="toast-badge">{won ? "✓" : "↗"}</span><span><small>{won ? "CHECKERED FLAG" : "FEEDBACK REVEAL"}</small><b>{won ? "猜中了！" : "线索揭晓"}</b></span><i className="toast-spark spark-one" /><i className="toast-spark spark-two" /><i className="toast-spark spark-three" /></div> : null}
+          {showFinish ? <div className={`finish-banner ${won ? "finish-win" : "finish-loss"}`}><div><span className="finish-kicker">{won ? "CHECKERED FLAG" : "RACE OVER"}</span><b>{won ? "漂亮，这一圈你拿下了。" : `答案是 ${target?.name}`}</b><small>{won ? `用了 ${guesses.length} 次猜测，反应很快。` : "再跑一圈，你会更接近正确答案。"}</small><div className="finish-transfer"><span>CAREER MOVES</span><strong>{target ? getTransferHistory(target) : "—"}</strong></div></div><div className="finish-actions"><button className="back-button" onClick={() => setPhase("setup")}>换个模式</button><button className="primary-button" onClick={restartSameMode}><span>再来一局</span><b>↻</b></button></div></div> : null}
         </main>
       )}
 
